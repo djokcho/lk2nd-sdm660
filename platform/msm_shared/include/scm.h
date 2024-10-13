@@ -48,6 +48,7 @@
 						  (num_args & 0xffff))
 #define MAKE_SCM_ARGS(...)                     MAKE_SCM_VAR_ARGS(__VA_ARGS__, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 #define SCM_ATOMIC_BIT                         BIT(31)
+#define SCM_ARM64_BIT                          BIT(30) /* used only in SMC ARM64 calling cnvention, 32-bit lk should't use it */
 #define SCM_MAX_ARG_LEN                        5
 #define SCM_INDIR_MAX_LEN                      10
 

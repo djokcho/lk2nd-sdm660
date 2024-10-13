@@ -91,6 +91,9 @@ int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id)
 	scm_arg.x1 = MAKE_SCM_ARGS(0x1);
 	scm_arg.x2 = MAKE_SIP_SCM_CMD(svc_id, cmd_id);
 
+	/* make call atomic, as linux does */
+	scm_arg.atomic = 0x1;
+
 	ret = scm_call2(&scm_arg, &scm_ret);
 
 	if (!ret)
@@ -99,7 +102,7 @@ int is_scm_call_available(uint32_t svc_id, uint32_t cmd_id)
 	return ret;
 }
 
-static int scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
+static int scm_arm_support_available(void)
 {
 	int ret;
 
@@ -111,15 +114,44 @@ static int scm_arm_support_available(uint32_t svc_id, uint32_t cmd_id)
 	return ret;
 }
 
+static uint32_t scm_call_a32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, scmcall_ret *ret);
+
+#define PSCI_0_2_FN_BASE          0x84000000
+#define PSCI_0_2_FN(n)            (PSCI_0_2_FN_BASE + (n))
+#define PSCI_0_2_FN_PSCI_VERSION  PSCI_0_2_FN(0)
+
+void test_psci_get_version(void)
+{
+	scmcall_ret ret;
+	uint32_t rc;
+	uint32_t x0 = PSCI_0_2_FN_PSCI_VERSION;
+
+	dprintf(INFO, "doing scm call with args: x0=%08x\n", x0);
+	ret.x1 = ret.x2 = ret.x3 = 0x00;
+
+	rc = scm_call_a32(x0, 0, 0, 0, 0, 0, &ret);
+	if (rc) {
+		dprintf(CRITICAL, "SCM call: 0x%x failed with :%x\n", x0, rc);
+	} else {
+		dprintf(INFO, "PSCI ver: %08x\n", ret.x1);
+	}
+}
+
 void scm_init(void)
 {
 	int ret;
+
+	/* Let's pretend that we have working SCM */
+	//scm_arm_support = true; //false;
+	//scm_initialized = true;
 
 	dprintf(SPEW, "scm_init(): start, scm_initialized: %s\n", scm_initialized ? "true" : "false");
 	if (scm_initialized)
 		return;
 
-	ret = scm_arm_support_available(SCM_SVC_INFO, IS_CALL_AVAIL_CMD);
+	//test_psci_get_version(); // removeme // this also hangs the same way
+
+	ret = scm_arm_support_available();
 	dprintf(SPEW, "scm_init(): scm_arm_support_available ret = %d\n", ret);
 
 	if (ret < 0)
@@ -299,6 +331,8 @@ scm_call(uint32_t svc_id, uint32_t cmd_id, const void *cmd_buf,
 
 	/* Flush command to main memory for TZ */
 	arch_clean_invalidate_cache_range((addr_t) cmd, cmd->len);
+
+	dprintf(INFO, "scm_call: svc_id/cmd_id: %08x/%08x\n", svc_id, cmd_id);
 
 	ret = smc((uint32_t) cmd);
 	if (ret)
@@ -1142,13 +1176,13 @@ int scm_random(uintptr_t * rbuf, uint32_t  r_len)
 uintptr_t get_canary(void)
 {
 	uintptr_t canary;
-	// if(scm_random(&canary, sizeof(canary))) {
-	// 	dprintf(CRITICAL,"scm_call for random failed !!!");
-	// 	/*
-	// 	* fall back to use lib rand API if scm call failed.
-	// 	*/
-	 	canary =  rand();
-	// }
+	if(scm_random(&canary, sizeof(canary))) {
+		dprintf(CRITICAL,"scm_call for random failed !!!");
+		/*
+		* fall back to use lib rand API if scm call failed.
+		*/
+		canary =  rand();
+	}
 
 	return canary;
 }
@@ -1247,6 +1281,10 @@ uint32_t scm_call2(scmcall_arg *arg, scmcall_ret *ret)
 		arch_clean_invalidate_cache_range((addr_t) indir_arg, ROUNDUP((SCM_INDIR_MAX_LEN * sizeof(uint32_t)), CACHE_LINE));
 		x5 = (addr_t) indir_arg;
 	}
+
+	// x6 is hardcoded as 0 in scm_call_a32()
+	dprintf(INFO, "doing scm call with args: %08x-%08x-%08x-%08x-%08x-%08x-%08x\n",
+		arg->x0, arg->x1, arg->x2, arg->x3, arg->x4, x5, 0);
 
 	rc = scm_call_a32(arg->x0, arg->x1, arg->x2, arg->x3, arg->x4, x5, ret);
 

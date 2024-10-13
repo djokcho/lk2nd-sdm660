@@ -101,7 +101,7 @@ void platform_early_init(void)
 	platform_clock_init();
 	qgic_init();
 	qtimer_init();
-	//scm_init();
+	scm_init();
 	//dputs(SPEW, "platform_early_init(): after scm_init()\n");
 
 	dputs(SPEW, "platform_early_init(): done\n");
