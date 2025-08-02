@@ -7,11 +7,9 @@
 	model = "Nokia 7 Plus";
 
 	qcom,msm-id = <QCOM_ID_SDM660 0x0>; // <0x13d 0x0>
-
-	qcom,board-id = <0x20009 0x0>; // from downstream
-  qcom,board-id = <8 0>;
-  qcom,pmic-id = <0x0001001b 0x0101011a 0x0 0x0>,
-                 <0x0001001b 0x0201011a 0x0 0x0>;
+        qcom,board-id = <8 0>;
+        qcom,pmic-id = <0x0001001b 0x0101011a 0x0 0x0>,
+                       <0x0001001b 0x0201011a 0x0 0x0>;
 
 };
 
