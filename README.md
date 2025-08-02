@@ -17,7 +17,7 @@ by providing:
     devices, modem on Motorola smartphones, ...)
   - **Various debugging commands** that allow better understanding of the hardware
     for research and development purposes
-
+e
 There are two different configurations:
 
   - **lk2nd:** "secondary" bootloader intended for devices where existing
