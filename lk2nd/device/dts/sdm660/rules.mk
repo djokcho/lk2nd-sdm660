@@ -2,4 +2,5 @@
 LOCAL_DIR := $(GET_LOCAL_DIR)
 
 ADTBS += \
+        $(LOCAL_DIR)/nokia-b2n.dtb \
 	$(LOCAL_DIR)/sdm660-xiaomi-lavender.dtb \
