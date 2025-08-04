@@ -57,7 +57,7 @@ lk2nd provides the standard Android fastboot protocol for flashing/booting Andro
 Press `Volume Down` while booting to enter Fastboot mode.
 Press `Volume Up` while booting to boot into Recovery mode.
 
-> [!TIP]
+> [!TIP]e
 > If your stock bootloader uses the same key combinations, you need to wait a bit before
 > pressing the volume keys. Usually, waiting until the screen turns on and/or the device vibrates
 > should be enough to make the stock bootloader ignore the keys.
